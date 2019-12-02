@@ -1,19 +1,48 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Diagnostics;
+using System;
+using System.Reflection;
 
-public class FileItem
-{
-  [MenuItem("File/Restart")]
-  static void RestartUnityEditor()
-  {
-    string shPath = Application.dataPath + "/Editor/restart_unity_editor.sh";
+namespace UnityEditorExtension {
+  public class FileItem {
+    [MenuItem("File/Restart &r")]
+    static void RestartUnityEditor() {
+      string command = getCommandToRestartEditor();
+      string args = getRestartEditorArgs();
+      Process.Start(command, args);
+      EditorApplication.Exit(0);
+    }
 
-    string unityEditorPath = EditorApplication.applicationPath;
-    string args = "-projectPath " + Application.dataPath.Replace("/Assets", "");
-    string command = unityEditorPath + " " + args;
+    [MenuItem("File/Clear Console &c")]
+    static void ClearConsole() {
+      MethodInfo clearMethod = getClearConsoleMethodInfo();
+      clearMethod.Invoke(null, null);
+    }
 
-    Process.Start("/bin/bash", $"-c \"{shPath} {command}\"");
-    EditorApplication.Exit(0);
+    [MenuItem("File/Toggle Inspector Lock &i")]
+    static void ToggleConsole() {
+      ActiveEditorTracker tracker = ActiveEditorTracker.sharedTracker;
+      tracker.isLocked = !tracker.isLocked;
+      tracker.ForceRebuild();
+    }
+
+    static MethodInfo getClearConsoleMethodInfo() {
+      Type logEntries = Type.GetType("UnityEditor.LogEntries, UnityEditor.dll");
+      MethodInfo clearMethodInfo = logEntries.GetMethod("Clear", BindingFlags.Static | BindingFlags.Public);
+      return clearMethodInfo;
+    }
+
+    static string getCommandToRestartEditor() {
+      return "/bin/bash";
+    }
+
+    static string getRestartEditorArgs() {
+      string shPath = Application.dataPath + "/Editor/restart_unity_editor.sh";
+      string unityEditorPath = EditorApplication.applicationPath;
+      string args = "-projectPath " + Application.dataPath.Replace("/Assets", "");
+      string command = unityEditorPath + " " + args;
+      return $"-c \"{shPath} {command}\"";
+    }
   }
 }
