@@ -40,7 +40,7 @@ namespace UnityEditorExtension {
     static string getRestartEditorArgs() {
       string shPath = Application.dataPath + "/Editor/restart_unity_editor.sh";
       string unityEditorPath = EditorApplication.applicationPath;
-      string args = "-projectPath " + Application.dataPath.Replace("/Assets", "");
+      string args = "-projectPath " + Application.dataPath.Remove(Application.dataPath.LastIndexOf("/Assets"), "/Assets".Length);
       string command = unityEditorPath + " " + args;
       return $"-c \"{shPath} {command}\"";
     }
